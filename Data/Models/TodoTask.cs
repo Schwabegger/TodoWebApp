@@ -15,6 +15,6 @@ namespace Data.Models
         [Required]
         public string TaskName { get; set; }
 
-        public bool IsCompleted { get; set; }
+        public bool IsCompleted { get; set; } = false;
     }
 }

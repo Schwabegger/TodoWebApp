@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,20 +26,13 @@ namespace Core.Services
 
         public async Task CreateTodoAsync(TodoDto todoDto, string userId)
         {
-            var todo = new Todo()
-            {
-                Title = todoDto.Title,
-                OwnerId = userId
-            };
+            var todo = todoDto.AsEntity(userId);
             
             await _context.Todos.AddAsync(todo);
-
+            await _context.SaveChangesAsync();
+            
             foreach (var todooTaskDto in todoDto.Tasks)
                 todo.Tasks.Add(await _todoTaskService.CreateTodoTaskAsync(todooTaskDto, todo.Id));
-            
-            _context.Update(todo);
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task<TodoDto> GetTodoAsync(int id, string userId)
@@ -74,6 +68,8 @@ namespace Core.Services
         public async Task<IEnumerable<TodoDto>> GetTodosByUserIdAsync(string userId)
         {
             var todos = _context.Todos.AsNoTracking().Where(t => t.OwnerId == userId.ToString()).ToList().ConvertAll(new Converter<Todo, TodoDto>(t => t.AsDto()));
+            foreach(var todo in todos)
+                todo.Tasks = await _todoTaskService.GetAllTasksByTodoIdAsync(todo.Id);
             return todos;
         }
     }

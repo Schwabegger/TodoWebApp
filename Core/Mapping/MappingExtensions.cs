@@ -28,12 +28,12 @@ namespace Core.Mapping
             };
         }
 
-        public static Todo AsEntity(this TodoDto todoDto)
+        public static Todo AsEntity(this TodoDto todoDto, string userId)
         {
             return new()
             {
                 Title = todoDto.Title,
-                Tasks = todoDto.Tasks.Select(x => x.AsEntity()).ToList()
+                OwnerId = userId
             };
         }
 
